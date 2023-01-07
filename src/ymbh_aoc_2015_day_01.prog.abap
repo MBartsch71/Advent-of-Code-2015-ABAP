@@ -117,11 +117,11 @@ CLASS tc_floor_parser DEFINITION FINAL FOR TESTING
   PRIVATE SECTION.
     DATA cut TYPE REF TO movement.
 
-    METHODS assert_movement IMPORTING input    TYPE REF TO ycl_mbh_string
-                                      expected TYPE REF TO ycl_mbh_integer.
+    METHODS assert_movement IMPORTING direction_pattern  TYPE REF TO ycl_mbh_string
+                                      expected_end_floor TYPE REF TO ycl_mbh_integer.
 
-    METHODS assert_position IMPORTING input    TYPE REF TO ycl_mbh_string
-                                      expected TYPE REF TO ycl_mbh_integer.
+    METHODS assert_position IMPORTING direction_pattern TYPE REF TO ycl_mbh_string
+                                      expected_position TYPE REF TO ycl_mbh_integer.
 
     METHODS get_floors_after_instructions  FOR TESTING.
     METHODS get_postn_of_moving_in_basemnt FOR TESTING.
@@ -132,35 +132,35 @@ CLASS tc_floor_parser IMPLEMENTATION.
 
   METHOD assert_movement.
     cut = NEW #( ).
-    cut->move( input ).
-    cl_abap_unit_assert=>assert_equals( exp = expected->value( )
+    cut->move( direction_pattern ).
+    cl_abap_unit_assert=>assert_equals( exp = expected_end_floor->value( )
                                         act = cut->get_floor( )
-                                        msg = |Input: { input->value( ) }| ).
+                                        msg = |Input: { direction_pattern->value( ) }| ).
   ENDMETHOD.
 
   METHOD assert_position.
     cut = NEW #( ).
-    cut->move( input ).
-    cl_abap_unit_assert=>assert_equals( exp = expected->value( )
+    cut->move( direction_pattern ).
+    cl_abap_unit_assert=>assert_equals( exp = expected_position->value( )
                                         act = cut->get_position( )
-                                        msg = |Input: { input->value( ) }| ).
+                                        msg = |Input: { direction_pattern->value( ) }| ).
   ENDMETHOD.
 
   METHOD get_floors_after_instructions.
-    assert_movement( input = ycl_mbh_string=>new( |(())| )    expected = ycl_mbh_integer=>create( 0 ) ).
-    assert_movement( input = ycl_mbh_string=>new( |()()| )    expected = ycl_mbh_integer=>create( 0 ) ).
-    assert_movement( input = ycl_mbh_string=>new( |(()(()(| ) expected = ycl_mbh_integer=>create( 3 ) ).
-    assert_movement( input = ycl_mbh_string=>new( |(((| )     expected = ycl_mbh_integer=>create( 3 ) ).
-    assert_movement( input = ycl_mbh_string=>new( |))(((((| ) expected = ycl_mbh_integer=>create( 3 ) ).
-    assert_movement( input = ycl_mbh_string=>new( |())| )     expected = ycl_mbh_integer=>create( -1 ) ).
-    assert_movement( input = ycl_mbh_string=>new( |))(| )     expected = ycl_mbh_integer=>create( -1 ) ).
-    assert_movement( input = ycl_mbh_string=>new( |)))| )     expected = ycl_mbh_integer=>create( -3 ) ).
-    assert_movement( input = ycl_mbh_string=>new( |)())())| ) expected = ycl_mbh_integer=>create( -3 ) ).
+    assert_movement( direction_pattern = ycl_mbh_string=>new( |(())| )    expected_end_floor = ycl_mbh_integer=>create( 0 ) ).
+    assert_movement( direction_pattern = ycl_mbh_string=>new( |()()| )    expected_end_floor = ycl_mbh_integer=>create( 0 ) ).
+    assert_movement( direction_pattern = ycl_mbh_string=>new( |(()(()(| ) expected_end_floor = ycl_mbh_integer=>create( 3 ) ).
+    assert_movement( direction_pattern = ycl_mbh_string=>new( |(((| )     expected_end_floor = ycl_mbh_integer=>create( 3 ) ).
+    assert_movement( direction_pattern = ycl_mbh_string=>new( |))(((((| ) expected_end_floor = ycl_mbh_integer=>create( 3 ) ).
+    assert_movement( direction_pattern = ycl_mbh_string=>new( |())| )     expected_end_floor = ycl_mbh_integer=>create( -1 ) ).
+    assert_movement( direction_pattern = ycl_mbh_string=>new( |))(| )     expected_end_floor = ycl_mbh_integer=>create( -1 ) ).
+    assert_movement( direction_pattern = ycl_mbh_string=>new( |)))| )     expected_end_floor = ycl_mbh_integer=>create( -3 ) ).
+    assert_movement( direction_pattern = ycl_mbh_string=>new( |)())())| ) expected_end_floor = ycl_mbh_integer=>create( -3 ) ).
   ENDMETHOD.
 
   METHOD get_postn_of_moving_in_basemnt.
-    assert_position( input = ycl_mbh_string=>new( |)| )     expected = ycl_mbh_integer=>create( 1 ) ).
-    assert_position( input = ycl_mbh_string=>new( |()())| ) expected = ycl_mbh_integer=>create( 5 ) ).
+    assert_position( direction_pattern = ycl_mbh_string=>new( |)| )     expected_position = ycl_mbh_integer=>create( 1 ) ).
+    assert_position( direction_pattern = ycl_mbh_string=>new( |()())| ) expected_position = ycl_mbh_integer=>create( 5 ) ).
   ENDMETHOD.
 
 ENDCLASS.
