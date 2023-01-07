@@ -3,6 +3,7 @@ REPORT ymbh_aoc_2015_day_01.
 CLASS input_reader DEFINITION.
   PUBLIC SECTION.
     METHODS read_file_in_string RETURNING VALUE(result) TYPE REF TO ycl_mbh_string.
+
 ENDCLASS.
 
 CLASS input_reader IMPLEMENTATION.
@@ -19,24 +20,28 @@ CLASS movement DEFINITION.
   PUBLIC SECTION.
     METHODS get_floor RETURNING VALUE(result) TYPE i.
 
+    METHODS get_position RETURNING VALUE(result) TYPE i.
+
     METHODS move IMPORTING instructions  TYPE REF TO ycl_mbh_string
                  RETURNING VALUE(result) TYPE REF TO ycl_mbh_integer.
-
-    METHODS get_position RETURNING VALUE(result) TYPE i.
 
   PRIVATE SECTION.
     DATA current_floor TYPE i.
     DATA entering_basement_at_position TYPE i.
     DATA basement_visited TYPE abap_bool.
 
-    METHODS move_to_floor IMPORTING direction TYPE REF TO ycl_mbh_string.
-
     METHODS basement_not_yet_visited RETURNING VALUE(result) TYPE abap_bool.
-    METHODS entered_floor_is_basement RETURNING VALUE(result) TYPE abap_bool.
 
     METHODS increase_position.
+
+    METHODS move_to_floor IMPORTING direction TYPE REF TO ycl_mbh_string.
+
+    METHODS entered_floor_is_basement RETURNING VALUE(result) TYPE abap_bool.
+
     METHODS mark_basement_visited.
+
     METHODS move_one_floor_up.
+
     METHODS move_one_floor_down.
 
 ENDCLASS.
@@ -68,6 +73,14 @@ CLASS movement IMPLEMENTATION.
     ENDWHILE.
   ENDMETHOD.
 
+  METHOD basement_not_yet_visited.
+    result = xsdbool( basement_visited = abap_false ).
+  ENDMETHOD.
+
+  METHOD increase_position.
+    entering_basement_at_position = entering_basement_at_position + 1.
+  ENDMETHOD.
+
   METHOD move_to_floor.
     IF direction->value( ) = |(|.
       move_one_floor_up( ).
@@ -76,14 +89,6 @@ CLASS movement IMPLEMENTATION.
     IF direction->value( ) = |)|.
       move_one_floor_down( ).
     ENDIF.
-  ENDMETHOD.
-
-  METHOD basement_not_yet_visited.
-    result = xsdbool( basement_visited = abap_false ).
-  ENDMETHOD.
-
-  METHOD increase_position.
-    entering_basement_at_position = entering_basement_at_position + 1.
   ENDMETHOD.
 
   METHOD entered_floor_is_basement.
@@ -113,10 +118,10 @@ CLASS tc_floor_parser DEFINITION FINAL FOR TESTING
     DATA cut TYPE REF TO movement.
 
     METHODS assert_movement IMPORTING input    TYPE REF TO ycl_mbh_string
-                                      expected TYPE i.
+                                      expected TYPE REF TO ycl_mbh_integer.
 
     METHODS assert_position IMPORTING input    TYPE REF TO ycl_mbh_string
-                                      expected TYPE i.
+                                      expected TYPE REF TO ycl_mbh_integer.
 
     METHODS get_floors_after_instructions  FOR TESTING.
     METHODS get_postn_of_moving_in_basemnt FOR TESTING.
@@ -128,30 +133,34 @@ CLASS tc_floor_parser IMPLEMENTATION.
   METHOD assert_movement.
     cut = NEW #( ).
     cut->move( input ).
-    cl_abap_unit_assert=>assert_equals( exp = expected act = cut->get_floor( ) msg = |Input: { input->value( ) }| ).
+    cl_abap_unit_assert=>assert_equals( exp = expected->value( )
+                                        act = cut->get_floor( )
+                                        msg = |Input: { input->value( ) }| ).
   ENDMETHOD.
 
   METHOD assert_position.
     cut = NEW #( ).
     cut->move( input ).
-    cl_abap_unit_assert=>assert_equals( exp = expected act = cut->get_position( ) msg = |Input: { input->value( ) }| ).
+    cl_abap_unit_assert=>assert_equals( exp = expected->value( )
+                                        act = cut->get_position( )
+                                        msg = |Input: { input->value( ) }| ).
   ENDMETHOD.
 
   METHOD get_floors_after_instructions.
-    assert_movement( input = ycl_mbh_string=>new( |(())| )    expected = 0 ).
-    assert_movement( input = ycl_mbh_string=>new( |()()| )    expected = 0 ).
-    assert_movement( input = ycl_mbh_string=>new( |(()(()(| ) expected = 3 ).
-    assert_movement( input = ycl_mbh_string=>new( |(((| )     expected = 3 ).
-    assert_movement( input = ycl_mbh_string=>new( |))(((((| ) expected = 3 ).
-    assert_movement( input = ycl_mbh_string=>new( |())| )     expected = -1 ).
-    assert_movement( input = ycl_mbh_string=>new( |))(| )     expected = -1 ).
-    assert_movement( input = ycl_mbh_string=>new( |)))| )     expected = -3 ).
-    assert_movement( input = ycl_mbh_string=>new( |)())())| ) expected = -3 ).
+    assert_movement( input = ycl_mbh_string=>new( |(())| )    expected = ycl_mbh_integer=>create( 0 ) ).
+    assert_movement( input = ycl_mbh_string=>new( |()()| )    expected = ycl_mbh_integer=>create( 0 ) ).
+    assert_movement( input = ycl_mbh_string=>new( |(()(()(| ) expected = ycl_mbh_integer=>create( 3 ) ).
+    assert_movement( input = ycl_mbh_string=>new( |(((| )     expected = ycl_mbh_integer=>create( 3 ) ).
+    assert_movement( input = ycl_mbh_string=>new( |))(((((| ) expected = ycl_mbh_integer=>create( 3 ) ).
+    assert_movement( input = ycl_mbh_string=>new( |())| )     expected = ycl_mbh_integer=>create( -1 ) ).
+    assert_movement( input = ycl_mbh_string=>new( |))(| )     expected = ycl_mbh_integer=>create( -1 ) ).
+    assert_movement( input = ycl_mbh_string=>new( |)))| )     expected = ycl_mbh_integer=>create( -3 ) ).
+    assert_movement( input = ycl_mbh_string=>new( |)())())| ) expected = ycl_mbh_integer=>create( -3 ) ).
   ENDMETHOD.
 
   METHOD get_postn_of_moving_in_basemnt.
-    assert_position( input = ycl_mbh_string=>new( |)| )     expected = 1 ).
-    assert_position( input = ycl_mbh_string=>new( |()())| ) expected = 5 ).
+    assert_position( input = ycl_mbh_string=>new( |)| )     expected = ycl_mbh_integer=>create( 1 ) ).
+    assert_position( input = ycl_mbh_string=>new( |()())| ) expected = ycl_mbh_integer=>create( 5 ) ).
   ENDMETHOD.
 
 ENDCLASS.
