@@ -2,7 +2,7 @@ REPORT ymbh_aoc_2015_day_01.
 
 CLASS input_reader DEFINITION.
   PUBLIC SECTION.
-    METHODS read_file_in_string RETURNING VALUE(result) TYPE REF TO ycl_mbh_string.
+    METHODS read_file_in_string RETURNING VALUE(result) TYPE string.
 
 ENDCLASS.
 
@@ -11,7 +11,7 @@ CLASS input_reader IMPLEMENTATION.
   METHOD read_file_in_string.
     DATA(file_reader) = NEW zcl_mbh_file_upload( |/Users/mbartsch71/github/Advent-of-Code-2015-ABAP/inputs/20151201| ).
     DATA(result_tab) = file_reader->file_upload_in_stringtab( ).
-    result = ycl_mbh_string=>new( result_tab[ 1 ] ).
+    result = result_tab[ 1 ].
   ENDMETHOD.
 
 ENDCLASS.
@@ -22,10 +22,17 @@ CLASS movement DEFINITION.
 
     METHODS get_position RETURNING VALUE(result) TYPE i.
 
-    METHODS move IMPORTING instructions  TYPE REF TO ycl_mbh_string
-                 RETURNING VALUE(result) TYPE REF TO ycl_mbh_integer.
+    METHODS move IMPORTING instructions  TYPE string
+                 RETURNING VALUE(result) TYPE i.
 
   PRIVATE SECTION.
+    TYPES basetype TYPE c LENGTH 1.
+    TYPES: BEGIN OF ENUM direction_type BASE TYPE basetype,
+             nothing VALUE IS INITIAL,
+             up      VALUE '(',
+             down    VALUE ')',
+           END OF ENUM direction_type.
+
     DATA current_floor TYPE i.
     DATA entering_basement_at_position TYPE i.
     DATA basement_visited TYPE abap_bool.
@@ -34,7 +41,7 @@ CLASS movement DEFINITION.
 
     METHODS increase_position.
 
-    METHODS move_to_floor IMPORTING direction TYPE REF TO ycl_mbh_string.
+    METHODS move_to_floor IMPORTING direction TYPE direction_type.
 
     METHODS entered_floor_is_basement RETURNING VALUE(result) TYPE abap_bool.
 
@@ -43,6 +50,16 @@ CLASS movement DEFINITION.
     METHODS move_one_floor_up.
 
     METHODS move_one_floor_down.
+
+    METHODS count_pos_till_basement_visit.
+
+    METHODS mark_basement_entering_pos.
+
+    METHODS make_instructions_iterable IMPORTING instructions  TYPE string
+                                       RETURNING VALUE(result) TYPE REF TO yif_mbh_iterator.
+
+    METHODS covert_to_enum IMPORTING iterator_object TYPE REF TO object
+                           RETURNING VALUE(result)   TYPE direction_type.
 
 ENDCLASS.
 
@@ -57,20 +74,29 @@ CLASS movement IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD move.
-    DATA(iterator) = instructions->get_iterator( ).
+    DATA(iterator) = make_instructions_iterable( instructions ).
     WHILE iterator->has_next( ).
-
-      IF basement_not_yet_visited( ).
-        increase_position( ).
-      ENDIF.
-
-      move_to_floor( CAST #( iterator->get_next( ) ) ).
-
-      IF entered_floor_is_basement( ).
-        mark_basement_visited( ).
-      ENDIF.
-
+      count_pos_till_basement_visit( ).
+      move_to_floor( covert_to_enum( iterator->get_next( ) ) ).
+      mark_basement_entering_pos( ).
     ENDWHILE.
+  ENDMETHOD.
+
+  METHOD make_instructions_iterable.
+    DATA(instructions_interable_string) = ycl_mbh_string=>new( instructions ).
+    result = instructions_interable_string->get_iterator( ).
+  ENDMETHOD.
+
+  METHOD mark_basement_entering_pos.
+    IF entered_floor_is_basement( ).
+      mark_basement_visited( ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD count_pos_till_basement_visit.
+    IF basement_not_yet_visited( ).
+      increase_position( ).
+    ENDIF.
   ENDMETHOD.
 
   METHOD basement_not_yet_visited.
@@ -82,11 +108,11 @@ CLASS movement IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD move_to_floor.
-    IF direction->value( ) = |(|.
+    IF direction = up.
       move_one_floor_up( ).
     ENDIF.
 
-    IF direction->value( ) = |)|.
+    IF direction = down.
       move_one_floor_down( ).
     ENDIF.
   ENDMETHOD.
@@ -107,6 +133,12 @@ CLASS movement IMPLEMENTATION.
     current_floor = current_floor - 1.
   ENDMETHOD.
 
+  METHOD covert_to_enum.
+    DATA(string_object) = CAST ycl_mbh_string( iterator_object ).
+    result = SWITCH #( string_object->value( ) WHEN '(' THEN up
+                                               WHEN ')' THEN down ).
+  ENDMETHOD.
+
 ENDCLASS.
 
 
@@ -117,11 +149,11 @@ CLASS tc_floor_parser DEFINITION FINAL FOR TESTING
   PRIVATE SECTION.
     DATA cut TYPE REF TO movement.
 
-    METHODS assert_movement IMPORTING direction_pattern  TYPE REF TO ycl_mbh_string
-                                      expected_end_floor TYPE REF TO ycl_mbh_integer.
+    METHODS assert_movement IMPORTING direction_pattern  TYPE string
+                                      expected_end_floor TYPE i.
 
-    METHODS assert_position IMPORTING direction_pattern TYPE REF TO ycl_mbh_string
-                                      expected_position TYPE REF TO ycl_mbh_integer.
+    METHODS assert_position IMPORTING direction_pattern TYPE string
+                                      expected_position TYPE i.
 
     METHODS get_floors_after_instructions  FOR TESTING.
     METHODS get_postn_of_moving_in_basemnt FOR TESTING.
@@ -133,34 +165,34 @@ CLASS tc_floor_parser IMPLEMENTATION.
   METHOD assert_movement.
     cut = NEW #( ).
     cut->move( direction_pattern ).
-    cl_abap_unit_assert=>assert_equals( exp = expected_end_floor->value( )
+    cl_abap_unit_assert=>assert_equals( exp = expected_end_floor
                                         act = cut->get_floor( )
-                                        msg = |Input: { direction_pattern->value( ) }| ).
+                                        msg = |Input: { direction_pattern }| ).
   ENDMETHOD.
 
   METHOD assert_position.
     cut = NEW #( ).
     cut->move( direction_pattern ).
-    cl_abap_unit_assert=>assert_equals( exp = expected_position->value( )
+    cl_abap_unit_assert=>assert_equals( exp = expected_position
                                         act = cut->get_position( )
-                                        msg = |Input: { direction_pattern->value( ) }| ).
+                                        msg = |Input: { direction_pattern }| ).
   ENDMETHOD.
 
   METHOD get_floors_after_instructions.
-    assert_movement( direction_pattern = ycl_mbh_string=>new( |(())| )    expected_end_floor = ycl_mbh_integer=>create( 0 ) ).
-    assert_movement( direction_pattern = ycl_mbh_string=>new( |()()| )    expected_end_floor = ycl_mbh_integer=>create( 0 ) ).
-    assert_movement( direction_pattern = ycl_mbh_string=>new( |(()(()(| ) expected_end_floor = ycl_mbh_integer=>create( 3 ) ).
-    assert_movement( direction_pattern = ycl_mbh_string=>new( |(((| )     expected_end_floor = ycl_mbh_integer=>create( 3 ) ).
-    assert_movement( direction_pattern = ycl_mbh_string=>new( |))(((((| ) expected_end_floor = ycl_mbh_integer=>create( 3 ) ).
-    assert_movement( direction_pattern = ycl_mbh_string=>new( |())| )     expected_end_floor = ycl_mbh_integer=>create( -1 ) ).
-    assert_movement( direction_pattern = ycl_mbh_string=>new( |))(| )     expected_end_floor = ycl_mbh_integer=>create( -1 ) ).
-    assert_movement( direction_pattern = ycl_mbh_string=>new( |)))| )     expected_end_floor = ycl_mbh_integer=>create( -3 ) ).
-    assert_movement( direction_pattern = ycl_mbh_string=>new( |)())())| ) expected_end_floor = ycl_mbh_integer=>create( -3 ) ).
+    assert_movement( direction_pattern = |(())|    expected_end_floor = 0  ).
+    assert_movement( direction_pattern = |()()|    expected_end_floor = 0  ).
+    assert_movement( direction_pattern = |(()(()(| expected_end_floor = 3  ).
+    assert_movement( direction_pattern = |(((|     expected_end_floor = 3  ).
+    assert_movement( direction_pattern = |))(((((| expected_end_floor = 3  ).
+    assert_movement( direction_pattern = |())|     expected_end_floor = -1  ).
+    assert_movement( direction_pattern = |))(|     expected_end_floor = -1  ).
+    assert_movement( direction_pattern = |)))|     expected_end_floor = -3  ).
+    assert_movement( direction_pattern = |)())())| expected_end_floor = -3  ).
   ENDMETHOD.
 
   METHOD get_postn_of_moving_in_basemnt.
-    assert_position( direction_pattern = ycl_mbh_string=>new( |)| )     expected_position = ycl_mbh_integer=>create( 1 ) ).
-    assert_position( direction_pattern = ycl_mbh_string=>new( |()())| ) expected_position = ycl_mbh_integer=>create( 5 ) ).
+    assert_position( direction_pattern = |)|     expected_position = 1  ).
+    assert_position( direction_pattern = |()())| expected_position = 5  ).
   ENDMETHOD.
 
 ENDCLASS.
