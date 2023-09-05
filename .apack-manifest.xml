@@ -13,6 +13,11 @@
      <ARTIFACT_ID>abap-frontend-files</ARTIFACT_ID>
      <GIT_URL>https://github.com/MBartsch71/abap-frontend-files.git</GIT_URL>
     </item>
+    <item>
+     <GROUP_ID>MBH_DEV</GROUP_ID>
+     <ARTIFACT_ID>ABAP_DATA_CLASSES</ARTIFACT_ID>
+     <GIT_URL>https://github.com/MBartsch71/ABAP_DATA_CLASSES.git</GIT_URL>
+    </item>
    </DEPENDENCIES>
   </DATA>
  </asx:values>
