@@ -3,17 +3,15 @@
  <asx:values>
   <DATA>
    <GROUP_ID>MBH_DEV</GROUP_ID>
-   <ARTIFACT_ID>AOC_2015</ARTIFACT_ID>
+   <ARTIFACT_ID>Advent-of-Code-2015-ABAP</ARTIFACT_ID>
    <VERSION>0.1</VERSION>
    <REPOSITORY_TYPE>abapGit</REPOSITORY_TYPE>
    <GIT_URL>https://github.com/MBartsch71/Advent-of-Code-2015-ABAP.git</GIT_URL>
    <DEPENDENCIES>
     <item>
      <GROUP_ID>MBH_DEV</GROUP_ID>
-     <ARTIFACT_ID>file_upload</ARTIFACT_ID>
-     <VERSION>0.1</VERSION>
+     <ARTIFACT_ID>abap-frontend-files</ARTIFACT_ID>
      <GIT_URL>https://github.com/MBartsch71/abap-frontend-files.git</GIT_URL>
-     <TARGET_PACKAGE>$MBH_FRONTEND_FILES</TARGET_PACKAGE>
     </item>
    </DEPENDENCIES>
   </DATA>
