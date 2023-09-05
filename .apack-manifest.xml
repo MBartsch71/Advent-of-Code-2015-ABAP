@@ -13,6 +13,7 @@
      <ARTIFACT_ID>file_upload</ARTIFACT_ID>
      <VERSION>0.0.1</VERSION>
      <GIT_URL>https://github.com/MBartsch71/abap-frontend-files.git</GIT_URL>
+     <TARGET_PACKAGE>$MBH_FRONTEND_FILES</TARGET_PACKAGE>
     </item>
    </DEPENDENCIES>
   </DATA>

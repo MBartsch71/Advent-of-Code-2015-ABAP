@@ -20,6 +20,7 @@ CLASS yaoc_dependencies IMPLEMENTATION.
                                              dependencies = VALUE #( ( group_id = 'MBH_DEV'
                                                                        artifact_id = 'file_upload'
                                                                        version = '0.0.1'
-                                                                       git_url = 'https://github.com/MBartsch71/abap-frontend-files.git' ) ) ).
+                                                                       git_url = 'https://github.com/MBartsch71/abap-frontend-files.git'
+                                                                       target_package = '$MBH_FRONTEND_FILES' ) ) ).
   ENDMETHOD.
 ENDCLASS.
