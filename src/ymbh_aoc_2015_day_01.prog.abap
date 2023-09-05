@@ -58,7 +58,7 @@ CLASS movement DEFINITION.
     METHODS make_instructions_iterable IMPORTING instructions  TYPE string
                                        RETURNING VALUE(result) TYPE REF TO yif_mbh_iterator.
 
-    METHODS covert_to_enum IMPORTING iterator_object TYPE REF TO object
+    METHODS convert_to_enum IMPORTING iterator_object TYPE REF TO object
                            RETURNING VALUE(result)   TYPE direction_type.
 
 ENDCLASS.
@@ -77,7 +77,7 @@ CLASS movement IMPLEMENTATION.
     DATA(iterator) = make_instructions_iterable( instructions ).
     WHILE iterator->has_next( ).
       count_pos_till_basement_visit( ).
-      move_to_floor( covert_to_enum( iterator->get_next( ) ) ).
+      move_to_floor( convert_to_enum( iterator->get_next( ) ) ).
       mark_basement_entering_pos( ).
     ENDWHILE.
   ENDMETHOD.
@@ -133,7 +133,7 @@ CLASS movement IMPLEMENTATION.
     current_floor = current_floor - 1.
   ENDMETHOD.
 
-  METHOD covert_to_enum.
+  METHOD convert_to_enum.
     DATA(string_object) = CAST ycl_mbh_string( iterator_object ).
     result = SWITCH #( string_object->value( ) WHEN '(' THEN up
                                                WHEN ')' THEN down ).
